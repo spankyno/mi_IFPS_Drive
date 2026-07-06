@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { HardDrive } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserMenu } from "@/components/shared/user-menu";
+import { Sidebar } from "@/components/shared/sidebar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -39,7 +40,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
           />
         </div>
       </header>
-      <main className="flex-1 bg-muted/30">{children}</main>
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 bg-muted/30">{children}</main>
+      </div>
     </div>
   );
 }

@@ -33,6 +33,7 @@ export interface Database {
         };
         Insert: Partial<Database["public"]["Tables"]["profiles"]["Row"]> & { id: string; email: string };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
+        Relationships: [];
       };
       folders: {
         Row: {
@@ -45,6 +46,7 @@ export interface Database {
         };
         Insert: Partial<Database["public"]["Tables"]["folders"]["Row"]> & { owner_id: string; name: string };
         Update: Partial<Database["public"]["Tables"]["folders"]["Row"]>;
+        Relationships: [];
       };
       files: {
         Row: {
@@ -73,6 +75,7 @@ export interface Database {
           pinning_provider: string;
         };
         Update: Partial<Database["public"]["Tables"]["files"]["Row"]>;
+        Relationships: [];
       };
       shares: {
         Row: {
@@ -86,6 +89,7 @@ export interface Database {
         };
         Insert: Partial<Database["public"]["Tables"]["shares"]["Row"]> & { file_id: string; owner_id: string };
         Update: Partial<Database["public"]["Tables"]["shares"]["Row"]>;
+        Relationships: [];
       };
       activity_log: {
         Row: {
@@ -99,6 +103,7 @@ export interface Database {
         };
         Insert: Partial<Database["public"]["Tables"]["activity_log"]["Row"]> & { owner_id: string; action: string };
         Update: Partial<Database["public"]["Tables"]["activity_log"]["Row"]>;
+        Relationships: [];
       };
     };
     Views: {
@@ -108,7 +113,11 @@ export interface Database {
           used_bytes: number;
           file_count: number;
         };
+        Relationships: [];
       };
     };
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }
