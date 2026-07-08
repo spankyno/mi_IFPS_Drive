@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useFolderContents, useInvalidateFolderContents } from "@/hooks/use-folder-contents";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useSearchFiles, useAllTags } from "@/hooks/use-search-files";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { UploadProgressPanel } from "@/components/files/upload-progress-panel";
 import { CreateFolderDialog } from "@/components/files/create-folder-dialog";
 import { FileBreadcrumb } from "@/components/files/file-breadcrumb";
@@ -69,7 +70,12 @@ export function FileExplorer({ userId, folderId, path, initialData }: FileExplor
   const { data: allTags = [] } = useAllTags(userId);
 
   const isSearching = search.trim() !== "" || activeTags.length > 0;
-  const { data: searchResults = [], isFetching: isSearchLoading } = useSearchFiles(userId, search, activeTags);
+  const debouncedSearch = useDebouncedValue(search, 350);
+  const { data: searchResults = [], isFetching: isSearchLoading } = useSearchFiles(
+    userId,
+    debouncedSearch,
+    activeTags
+  );
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     noClick: true,

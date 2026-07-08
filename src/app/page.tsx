@@ -47,7 +47,7 @@ export default async function HomePage() {
 
         <div className="mt-8 grid gap-6 sm:grid-cols-3">
           <Feature icon={<Sparkles className="size-5" />} title="Simple" text="Arrastra y suelta, como en cualquier drive." />
-          <Feature icon={<Lock className="size-5" />} title="Privado" text="Cifrado cliente-side opcional con Web Crypto API." />
+          <Feature icon={<Lock className="size-5" />} title="Privado" text="Enlaces revocables con caducidad, sin exponer tu drive entero." />
           <Feature icon={<Share2 className="size-5" />} title="Compartible" text="Enlaces públicos o privados por CID." />
         </div>
       </main>

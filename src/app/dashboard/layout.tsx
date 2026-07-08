@@ -4,6 +4,7 @@ import { HardDrive } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserMenu } from "@/components/shared/user-menu";
 import { Sidebar } from "@/components/shared/sidebar";
+import { MobileNav } from "@/components/shared/mobile-nav";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -42,8 +43,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </header>
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 bg-muted/30">{children}</main>
+        <main className="flex-1 bg-muted/30 pb-16 lg:pb-0">{children}</main>
       </div>
+      <MobileNav />
     </div>
   );
 }

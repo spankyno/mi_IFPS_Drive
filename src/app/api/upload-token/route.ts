@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getPinningAdapter } from "@/lib/ipfs/pinning-provider";
+import { getStorageUsage } from "@/lib/supabase/queries";
 import { z } from "zod";
 
 const bodySchema = z.object({
@@ -35,6 +36,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Datos de subida inválidos.", details: parsed.error.issues },
       { status: 400 }
+    );
+  }
+
+  // Antes de emitir la URL, comprobamos que el archivo no vaya a superar
+  // la cuota del usuario. Sin esto, cualquiera podía seguir subiendo
+  // archivos indefinidamente sin límite real de la aplicación (el único
+  // límite habría sido el del propio Filebase, no el nuestro).
+  const usage = await getStorageUsage(supabase, user.id);
+  if (usage.usedBytes + parsed.data.sizeBytes > usage.quotaBytes) {
+    return NextResponse.json(
+      {
+        error: `Este archivo superaría tu cuota de almacenamiento (${(usage.quotaBytes / 1024 ** 3).toFixed(1)} GB). Borra algo o pide más espacio.`,
+      },
+      { status: 413 }
     );
   }
 

@@ -25,7 +25,7 @@ export function UploadProgressPanel({
   if (tasks.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 w-80 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg animate-fade-in">
+    <div className="fixed bottom-20 right-4 z-40 w-80 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg animate-fade-in lg:bottom-4">
       <div className="flex items-center gap-2 border-b px-4 py-2.5">
         <UploadCloud className="size-4 text-primary" />
         <p className="text-sm font-medium">

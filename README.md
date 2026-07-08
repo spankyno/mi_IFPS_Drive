@@ -165,9 +165,14 @@ Implementado con `@supabase/ssr` (cliente browser + server + middleware), Server
 ## 🔒 Seguridad y privacidad
 
 - **Row Level Security** en todas las tablas de Supabase: cada usuario solo puede leer/escribir sus propios registros; los archivos `public`/`unlisted` son legibles por cualquiera (necesario para los enlaces de compartición).
-- **Encriptación cliente-side opcional** (`NEXT_PUBLIC_ENABLE_CLIENT_ENCRYPTION=true`): los archivos marcados como privados se cifran con **AES-GCM (Web Crypto API)** en el navegador antes de subir a IPFS. La clave de cifrado nunca viaja al servidor.
-- **Enlaces de compartición**: usan un `share_token` aleatorio (no el ID interno), con `permission` (`view`/`download`) y `expires_at` opcional.
-- Los CIDs son públicos por naturaleza (cualquiera con el CID puede acceder al contenido en IPFS) — por eso la encriptación cliente-side es la única garantía real de privacidad para archivos sensibles, más allá del control de acceso a nivel de aplicación.
+- **Enlaces de compartición**: usan un `share_token` aleatorio (no el ID interno), con `permission` (`view`/`download`) y `expires_at` opcional, resuelto vía una función `security definer` que no expone el resto de la tabla (ver Paso 6).
+- Los CIDs son públicos por naturaleza (cualquiera con el CID puede acceder al contenido en IPFS) — la app controla la *distribución* del CID (quién llega a conocerlo), no el contenido en sí una vez alguien lo tiene.
+
+**Limitaciones conocidas (léelas antes de usar esto en producción con datos sensibles):**
+
+- ⚠️ **La encriptación cliente-side NO está implementada todavía.** El esquema tiene las columnas (`is_encrypted`, `encryption_iv`) y existe la variable `NEXT_PUBLIC_ENABLE_CLIENT_ENCRYPTION` pensada para ello, pero el flujo de subida (`use-file-upload.ts`) sube el archivo tal cual, sin cifrar. Si necesitas confidencialidad real de los bytes (más allá de "nadie encuentra el CID por la app"), esto es lo primero que habría que construir antes de subir nada sensible: cifrar con AES-GCM (Web Crypto API) en el navegador antes del `PUT`, y descifrar en el modal de preview/páginas de compartición con la clave guardada solo en el cliente.
+- Las políticas RLS de `profiles` y `files` permiten actualizar **toda la fila** (no columna a columna). En la práctica esto significa que un usuario autenticado podría, vía la API de Supabase, modificarse a sí mismo `storage_quota_bytes` (el límite que ve en su propia barra de progreso) — es un límite solo de UI, no afecta al límite real de tu cuenta de Filebase, pero si quieres un límite duro real, muévelo a una Edge Function con `service role` en vez de dejarlo como columna editable por el propio usuario.
+- No hay rate limiting en `/api/upload-token` ni en los Server Actions. En free tier, para un proyecto personal esto es un riesgo bajo, pero si lo abres a más gente, añade algo tipo Upstash Ratelimit (tiene free tier) delante de esa ruta.
 
 ---
 
@@ -212,6 +217,15 @@ Dos formas de compartir, con comportamiento distinto a propósito:
 
 **Importante sobre "privado" en IPFS**: una vez un archivo está en IPFS, cualquiera que consiga el CID directamente (no a través de nuestra app) puede pedirlo a cualquier gateway público — eso es inherente a IPFS, no algo que la app pueda evitar. Lo que sí controla la app es la *distribución* del CID: sin enlace público ni token válido, nadie fuera de ti llega a conocer el CID por nuestra vía. Si necesitas confidencialidad real incluso frente a quien intercepte el CID, usa la encriptación cliente-side opcional (`NEXT_PUBLIC_ENABLE_CLIENT_ENCRYPTION`, ver sección de seguridad) — pendiente de implementar en el flujo de subida.
 
+## 🛡️ Optimización, seguridad y pulido final (Paso 7)
+
+- **Navegación móvil**: el sidebar solo se muestra en desktop (`lg:flex`) — sin una alternativa, en móvil no había forma de cambiar entre Inicio/Archivos/Compartidos salvo editando la URL a mano. Añadida una barra de navegación inferior fija (`MobileNav`), visible solo por debajo de `lg`.
+- **Cuota de almacenamiento aplicada de verdad**: `/api/upload-token` ahora comprueba el uso actual contra la cuota del usuario *antes* de emitir la URL firmada — antes se podía seguir subiendo indefinidamente sin que la app pusiera ningún límite propio.
+- **Páginas de error robustas**: `error.tsx` (errores dentro del dashboard/auth, con estilos del tema) y `global-error.tsx` (fallback si el layout raíz entero falla — por eso incluye sus propias etiquetas `<html>/<body>` y usa un `<a>` normal en vez de `<Link>`, ya que el router de Next puede no ser fiable en ese escenario). `not-found.tsx` para rutas inexistentes.
+- **Estados de carga (`loading.tsx`)** con esqueletos animados en `/dashboard`, `/dashboard/files` y `/dashboard/shared` — Next.js los muestra automáticamente vía streaming mientras se resuelve el Server Component.
+- **Búsqueda debounced**: el buscador de `/dashboard/files` espera 350ms de inactividad antes de lanzar la query contra todo el drive, para no disparar una petición por cada pulsación de tecla.
+- **Cabeceras de seguridad HTTP** (`next.config.ts`): `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y una `Content-Security-Policy` — deliberadamente permisiva en `img-src`/`connect-src`/`frame-src` porque no sabemos de antemano qué gateway IPFS o endpoint de pinning se usará (depende de `IPFS_PINNING_PROVIDER`), pero bloqueando sin excepción `<object>`/`<embed>` y que cualquier sitio externo nos incruste en un iframe.
+
 ## 🗺️ Roadmap de implementación (este build es iterativo)
 
 - [x] 1. Estructura base + configuración + README
@@ -219,7 +233,9 @@ Dos formas de compartir, con comportamiento distinto a propósito:
 - [x] 3. Dashboard: stats, storage bar, activity feed en tiempo real
 - [x] 4. Upload flow: drag & drop, carpetas, progreso
 - [x] 5. Previews, búsqueda avanzada, tags
-- [x] 6. Compartir (público/privado) + actividad realtime (**este paso**)
-- [ ] 7. Optimización, seguridad, pulido UX final
+- [x] 6. Compartir (público/privado) + actividad realtime
+- [x] 7. Optimización, seguridad, pulido UX final (**este paso**)
+
+**La aplicación está completa según el plan original.** Ideas razonables para seguir iterando más allá de este roadmap: encriptación cliente-side real en el flujo de subida (la variable `NEXT_PUBLIC_ENABLE_CLIENT_ENCRYPTION` ya existe pero el cifrado en sí no está implementado), rate limiting real en `/api/upload-token` (necesitaría un store externo tipo Upstash Redis, ya que las funciones serverless no persisten estado entre invocaciones), miniaturas generadas para vídeos/PDFs, y papelera de reciclaje con recuperación en vez de borrado inmediato.
 
 Vamos a construirlo por bloques, confirmando contigo antes de avanzar al siguiente. 👇
