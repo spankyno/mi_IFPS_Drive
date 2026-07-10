@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { HardDrive, Download, ExternalLink } from "lucide-react";
-import { formatBytes, formatRelativeTime } from "@/lib/utils/format";
+import { HardDrive } from "lucide-react";
 import { PublicMediaPreview } from "@/components/files/public-media-preview";
 
 export function PublicFileView({
@@ -40,49 +39,15 @@ export function PublicFileView({
           <PublicMediaPreview
             name={name}
             mimeType={mimeType}
+            sizeBytes={sizeBytes}
+            createdAt={createdAt}
             cid={cid}
+            gatewayUrl={gatewayUrl}
+            allowDownload={allowDownload}
             isEncrypted={isEncrypted}
             encryptionKey={encryptionKey}
             encryptionIv={encryptionIv}
-          >
-            {({ mediaUrl }) => (
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatBytes(sizeBytes)} · Compartido {formatRelativeTime(createdAt)}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  {allowDownload && mediaUrl && (
-                    <a
-                      href={mediaUrl}
-                      download={name}
-                      className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                    >
-                      <Download className="size-4" /> Descargar
-                    </a>
-                  )}
-                  {!isEncrypted && (
-                    <a
-                      href={gatewayUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent"
-                    >
-                      <ExternalLink className="size-4" /> Abrir en IPFS
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-          </PublicMediaPreview>
-
-          {!allowDownload && (
-            <p className="text-xs text-muted-foreground">
-              Este enlace es de solo visualización — quien lo compartió no habilitó la descarga directa.
-            </p>
-          )}
+          />
         </div>
       </main>
     </div>

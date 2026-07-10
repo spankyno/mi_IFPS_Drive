@@ -1,7 +1,18 @@
 "use client";
 
 import { useDecryptedMediaUrl } from "@/hooks/use-decrypted-media";
-import { FileImage, FileVideo, FileText, File as FileIcon, Loader2, AlertCircle, Lock } from "lucide-react";
+import { formatBytes, formatRelativeTime } from "@/lib/utils/format";
+import {
+  FileImage,
+  FileVideo,
+  FileText,
+  File as FileIcon,
+  Loader2,
+  AlertCircle,
+  Lock,
+  Download,
+  ExternalLink,
+} from "lucide-react";
 
 function iconForMime(mimeType: string) {
   if (mimeType.startsWith("image/")) return FileImage;
@@ -13,22 +24,34 @@ function iconForMime(mimeType: string) {
 interface PublicMediaPreviewProps {
   name: string;
   mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
   cid: string;
+  gatewayUrl: string;
+  allowDownload: boolean;
   isEncrypted: boolean;
   encryptionKey: string | null;
   encryptionIv: string | null;
-  /** Render-prop: el padre (Server Component) decide qué renderizar bajo la preview, con acceso a la mediaUrl ya resuelta. */
-  children: (state: { mediaUrl: string | null }) => React.ReactNode;
 }
 
+/**
+ * Client Component completo: toda la lógica de descifrado Y los botones
+ * de acción viven aquí (no como render-prop pasado desde un Server
+ * Component padre — pasar una función de servidor a cliente rompe la
+ * serialización de RSC con "Functions cannot be passed directly to
+ * Client Components"). El padre (page.tsx) solo pasa datos serializables.
+ */
 export function PublicMediaPreview({
   name,
   mimeType,
+  sizeBytes,
+  createdAt,
   cid,
+  gatewayUrl,
+  allowDownload,
   isEncrypted,
   encryptionKey,
   encryptionIv,
-  children,
 }: PublicMediaPreviewProps) {
   const { url: mediaUrl, isLoading, error } = useDecryptedMediaUrl(
     { isEncrypted, encryptionKey, encryptionIv, mimeType },
@@ -71,7 +94,41 @@ export function PublicMediaPreview({
         </p>
       )}
 
-      {children({ mediaUrl })}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
+        <div className="min-w-0">
+          <p className="truncate font-medium">{name}</p>
+          <p className="text-sm text-muted-foreground">
+            {formatBytes(sizeBytes)} · Compartido {formatRelativeTime(createdAt)}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {allowDownload && mediaUrl && (
+            <a
+              href={mediaUrl}
+              download={name}
+              className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              <Download className="size-4" /> Descargar
+            </a>
+          )}
+          {!isEncrypted && (
+            <a
+              href={gatewayUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent"
+            >
+              <ExternalLink className="size-4" /> Abrir en IPFS
+            </a>
+          )}
+        </div>
+      </div>
+
+      {!allowDownload && (
+        <p className="text-xs text-muted-foreground">
+          Este enlace es de solo visualización — quien lo compartió no habilitó la descarga directa.
+        </p>
+      )}
     </>
   );
 }
