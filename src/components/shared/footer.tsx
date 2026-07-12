@@ -25,7 +25,7 @@ export function Footer() {
             Contacto
           </a>
           <a
-            href="https://aitorblog.infinityfreeapp.com"
+            href="https://aitorsanchez.pages.dev/contacto"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground hover:underline"
