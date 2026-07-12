@@ -35,6 +35,13 @@ export function StorageUsageBar({ userId, initialData }: { userId: string; initi
         </span>
       </CardHeader>
       <CardContent className="space-y-4">
+        {data.isFallback && (
+          <p className="flex items-start gap-1.5 rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+            No pudimos cargar tus límites reales — mostrando valores por defecto de "Registrado" hasta que se resuelva. Si tienes plan Pro, puede tardar en reflejarse; recarga en un momento.
+          </p>
+        )}
+
         <div className="space-y-2">
           <Progress
             value={storagePct}

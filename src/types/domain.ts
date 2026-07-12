@@ -89,6 +89,8 @@ export interface UserLimits {
   usedBytes: number;
   fileCount: number;
   activeSharesCount: number;
+  /** true si estos límites son el fallback de emergencia (el RPC get_my_limits falló) — ver getMyLimits(). */
+  isFallback?: boolean;
 }
 
 /** Progreso de una subida en curso, usado por el store de uploads en cliente. */

@@ -265,6 +265,7 @@ export async function getMyLimits(supabase: TypedClient): Promise<UserLimits> {
     usedBytes: 0,
     fileCount: 0,
     activeSharesCount: 0,
+    isFallback: true,
   };
 
   const { data, error } = await supabase.rpc("get_my_limits");
@@ -275,6 +276,8 @@ export async function getMyLimits(supabase: TypedClient): Promise<UserLimits> {
   // y un throw ahí tira toda la página con el error boundary genérico.
   // Preferimos degradar a los límites más restrictivos y dejar la app
   // usable, registrando el error en el servidor para poder diagnosticarlo.
+  // `isFallback: true` permite además mostrar un aviso visible en la UI
+  // en vez de fallar en silencio (ver StorageUsageBar / settings/page.tsx).
   if (error) {
     console.error("get_my_limits RPC falló (¿falta ejecutar la migración 0005_plans.sql?):", error.message);
     return FALLBACK_LIMITS;

@@ -3,7 +3,7 @@ import { getMyLimits } from "@/lib/supabase/queries";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatBytes } from "@/lib/utils/format";
-import { Sparkles, Mail, Files, HardDrive, Link2, FileUp } from "lucide-react";
+import { Sparkles, Mail, Files, HardDrive, Link2, FileUp, AlertTriangle } from "lucide-react";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -63,6 +63,13 @@ export default async function SettingsPage() {
           )}
         </CardHeader>
         <CardContent className="space-y-5">
+          {limits.isFallback && (
+            <p className="flex items-start gap-1.5 rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+              No pudimos cargar tus límites reales — mostrando valores por defecto de &quot;Registrado&quot; hasta que se resuelva. Si tienes plan Pro, puede tardar en reflejarse; recarga en un momento.
+            </p>
+          )}
+
           <LimitRow
             icon={HardDrive}
             label="Almacenamiento"
