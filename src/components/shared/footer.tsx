@@ -17,7 +17,7 @@ export function Footer() {
             Acerca de
           </Link>
           <a
-            href="https://aitor-blog-contacto.vercel.app/"
+            href="https://aitorsanchez.pages.dev/contacto"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground hover:underline"
@@ -25,7 +25,7 @@ export function Footer() {
             Contacto
           </a>
           <a
-            href="https://aitorsanchez.pages.dev/contacto"
+            href="https://aitorsanchez.pages.dev/"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground hover:underline"
